@@ -1,0 +1,2 @@
+class DuplicatedEnumField(Exception):
+    pass
