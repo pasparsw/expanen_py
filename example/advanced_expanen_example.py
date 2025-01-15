@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.expandable_enum import ExpandableEnum
 from src.expandable_enum_field_base import ExpandableEnumFieldBase
 # Error defines a custom type for each expandable enum field

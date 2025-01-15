@@ -1,5 +1,9 @@
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.expandable_enum import ExpandableEnum
 from src.duplicated_enum_field import DuplicatedEnumField
+
 # this is a base enum which is intended to be extended by its specializations
 class GenericError(ExpandableEnum):
     INVALID_TOKEN = 0
