@@ -1,11 +1,11 @@
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from src.expandable_enum import ExpandableEnum
-from src.duplicated_enum_field import DuplicatedEnumField
+from expanen.expanen import Expanen
+from expanen.conflicting_enum_field import ConflictingEnumField
 
 # this is a base enum which is intended to be extended by its specializations
-class GenericError(ExpandableEnum):
+class GenericError(Expanen):
     INVALID_TOKEN = 0
     CONNECTION_DROPPED = 1
 # this is an extended enum - it allows for accessing all the values existing in its base class (GenericError), but
@@ -18,14 +18,14 @@ class SpecializedError(GenericError):
 try:
     class IncorrectSpecializationDuplicatedValue(GenericError):
         INVALID_ARGUMENT = 1
-except DuplicatedEnumField as e:
+except ConflictingEnumField as e:
     print(f"ERROR: {e}")
 # this extended enum is also invalid because its field CONNECTION_DROPPED has the same name (1) as the field from
 # its base class (GenericError)
 try:
     class IncorrectSpecializationDuplicatedName(GenericError):
         CONNECTION_DROPPED = 2
-except DuplicatedEnumField as e:
+except ConflictingEnumField as e:
     print(f"ERROR: {e}")
 # example of how to:
 #  * access values in expandable enums

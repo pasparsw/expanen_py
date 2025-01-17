@@ -20,18 +20,18 @@ type consistency.
 
 ## <a name="expandable_enums_properties"></a>Expandable enums properties
 
-Let's say there are two expandable enums `E1` and `E2` with the following properties:
-* `E1` contains fields `A` and `B`
-* `E2` contains fields `C` and `D`
-* `E2` derives from `E1`
+Let's say there are two expandable enums `B` and `E` with the following properties:
+* `B` contains field `F1`
+* `E` contains field `F2`
+* `E` derives from `B`
 
 Then the generic expandable enum properties are defined as:
-* `E1::A`, `E1::B`, `E2::A` and `E2::B` are of type `E1`
-* `E2::C` and `E2::D` are of type `E2`
-* `E1::A` == `E2::A`
-* `E1::B` == `E2::B`
+* `B::F1` and `E::F1` are of type `E1`
+* `B::F1` == `E.F1`
+* `E::F2`is of type `E`
 
-Additionally, none of the fields in `E2` can share the same field name or field value as any of the fields in `E1`.
+Additionally, none of the fields in `E` can share the same field name **or** field value as any of the fields in `B`. To 
+read more details about expandable enum properties, visit https://pikotutorial.com/ .
 
 ## <a name="how_to_use_it"></a>How to use it?
 
@@ -40,9 +40,9 @@ Additionally, none of the fields in `E2` can share the same field name or field 
 Expandable enums are created in the same way as the default Python enums, i.e. by derivation from the specific base class:
 
 ```python
-from expanen_py import ExpandableEnum
+from expanen_py import Expanen
 
-class GenericError(ExpandableEnum):
+class GenericError(Expanen):
     INVALID_TOKEN = 0
     CONNECTION_DROPPED = 1
 ```
@@ -87,7 +87,7 @@ The behavior of AccountError fields' types is analogous.
 
 As shown above, the default enum field type allows you to access enum field's `name` and `value`. If this is however not
 enough for your application and you want to apply some custom behavior, you can do it by defining a custom enum field
-type which must derive from `ExpandableEnumFieldBase`. The base class provides basic constructor and implementation of 
+type which must derive from `ExpanenField`. The base class provides basic constructor and implementation of 
 the properties `name` and `value`, so that custom field types may re-use it.
 
 Let's say that the value of an enum is not a simple value, but encodes complex information. For example, 
@@ -104,9 +104,7 @@ description from it. With **ExpanEn**, you can embed such utility directly in th
 enum field type:
 
 ```python
-from expanen_py import ExpandableEnumFieldBase
-
-class ErrorCodeAndDescription(ExpandableEnumFieldBase):
+class ErrorCodeAndDescription:
     @property
     def code(self) -> int:
         return int(self.value.split(": ")[0])
@@ -116,12 +114,10 @@ class ErrorCodeAndDescription(ExpandableEnumFieldBase):
         return self.value.split(": ")[1]
 ```
 
-Such type can be then provided to `_field_type` class member of the created enum to override the default one:
+Such type can be then to derive from when creating an expandable enum:
 
 ```python
-class GenericError(ExpandableEnum):
-    _field_type = ErrorCodeAndDescription
-
+class GenericError(Expanen, ErrorCodeDescription):
     INVALID_TOKEN = "4837: Invalid token has been provided"
     CONNECTION_DROPPED = "9572: Connection dropped due to API policy violation"
 ```
@@ -138,6 +134,28 @@ print(error.code)        # prints "9572"
 print(error.description) # prints "Connection dropped due to API policy violation"
 ```
 
+Although it's most probably not the best practice, it is technically allowed to have different enum field types across 
+the entire enum hierarchy. For example, such code is valid and works:
+
+```python
+class Square:
+    def get_area(self):
+        return self.value ** 2
+
+class Point:
+    def get_coordinates(self):
+        return f"x = {self.value[0]}, y = {self.value[1]}"
+
+class B(Expanen, Square):
+    F1 = 5
+
+class E(B, Point):
+    F2 = (12, 24)
+
+print(B.F1.get_area())         # prints "25"
+print(E.F2.get_coordinates())  # prints "x = 12, y = 24"
+```
+
 ## <a name="errors"></a>Errors
 
 There are 2 main errors which you may expect when misusing ExpanEn.
@@ -147,17 +165,17 @@ There are 2 main errors which you may expect when misusing ExpanEn.
 It is forbidden to define 2 fields with the same name across the entire enum hierarchy:
 
 ```python
-class Base(ExpandableEnum):
+class Base(Expanen):
     FIELD = 0
 
 class Extended(Base):
     FIELD = 1
 ```
 
-The above code will raise `DuplicatedEnumField` exception with the following error prompt:
+The above code will raise `ConflictingEnumField` exception with the following error prompt:
 
 ```
-DuplicatedEnumField: Failed to create an expandable enum Extended due to duplicated enum field! Extended.FIELD: 1 
+ConflictingEnumField: Failed to create an expandable enum Extended due to duplicated enum field! Extended.FIELD: 1 
 conflicts with Base.FIELD: 0
 ```
 
@@ -166,16 +184,16 @@ conflicts with Base.FIELD: 0
 It is forbidden to define 2 fields with the same value across the entire enum hierarchy:
 
 ```python
-class Base(ExpandableEnum):
+class Base(Expanen):
     FIELD = 0
 
 class Extended(Base):
     OTHER_FIELD = 0
 ```
 
-The above code will raise `DuplicatedEnumField` exception with the following error prompt:
+The above code will raise `ConflictingEnumField` exception with the following error prompt:
 
 ```
-DuplicatedEnumField: Failed to create an expandable enum Extended due to duplicated enum field! Extended.OTHER_FIELD: 0 
+ConflictingEnumField: Failed to create an expandable enum Extended due to duplicated enum field! Extended.OTHER_FIELD: 0 
 conflicts with Base.FIELD: 0
 ```

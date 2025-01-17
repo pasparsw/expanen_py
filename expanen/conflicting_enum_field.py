@@ -1,0 +1,2 @@
+class ConflictingEnumField(Exception):
+    pass
