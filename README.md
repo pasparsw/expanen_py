@@ -31,7 +31,7 @@ Then the generic expandable enum properties are defined as:
 * `E::F2` is of type `E`
 
 Additionally, none of the fields in `E` can share the same field name **or** field value as any of the fields in `B`. To 
-read more details about expandable enum properties, visit https://pikotutorial.com/ .
+read more details about expandable enum properties, visit https://pikotutorial.com/how-to-derive-from-an-enum-in-python/ .
 
 ## <a name="how_to_use_it"></a>How to use it?
 
